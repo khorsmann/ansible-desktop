@@ -1,26 +1,63 @@
 ---
-- name: local-install
+- name: Local Install of Tools
   hosts: localhost
-  become: true
   gather_facts: true
   connection: local
+  become: true
+  vars:
+    - neovim_appimage_url: "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
+    - lazygit_release_url: "https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
+    - lazygit_download_prefix: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_"
+    - lazygit_download_suffix: '_Linux_x86_64.tar.gz'
 
   tasks:
-    - name: neovim
-      block:
-      - name: get neovim app-image
-        ansible.builtin.get_url:
-          url: https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-          dest: /usr/local/bin/neovim.appimage
-          mode: '0755'
-
-      - name: Create a symbolic link nvim
-        ansible.builtin.file:
-          src: /usr/local/bin/neovim.appimage
-          dest: /usr/local/bin/nvim
-          owner: root
-          group: root
-          state: link
+    - name: Install neovim
       tags:
         - neovim
         - nvim
+      block:
+        - name: Get neovim app-image
+          ansible.builtin.get_url:
+            url: "{{ neovim_appimage_url }}"
+            dest: /usr/local/bin/neovim.appimage
+            mode: '0755'
+
+        - name: Create a symbolic link nvim
+          ansible.builtin.file:
+            src: /usr/local/bin/neovim.appimage
+            dest: /usr/local/bin/nvim
+            owner: root
+            group: root
+            state: link
+
+    - name: Install lazygit
+      tags:
+        - neovim
+        - nvim
+        - lazygit
+      block:
+        - name: Fetch JSON
+          ansible.builtin.uri:
+            url: "{{ lazygit_release_url }}"
+            return_content: true
+          register: json_response
+
+        - name: Extract and clenup tag_name
+          ansible.builtin.set_fact:
+            tag_name: "{{ json_response.json.tag_name | regex_replace('^v', '') }}"
+
+        - name: Show tag_name
+          ansible.builtin.debug:
+            var: tag_name
+
+        - name: Get TGZ-File
+          ansible.builtin.get_url:
+            url: "{{ lazygit_download_prefix }}{{ tag_name }}{{ lazygit_download_suffix }}"
+            dest: "/tmp/lazygit{{ tag_name }}{{ lazygit_download_suffix }}"
+            mode: '0644'
+
+        - name: Extract TGZ-File lazygit to /usr/local/bin/lazygit
+          ansible.builtin.unarchive:
+            src: "/tmp/lazygit{{ tag_name }}{{ lazygit_download_suffix }}"
+            dest: /usr/local/bin/
+            extra_opts: [--strip-components=1]
