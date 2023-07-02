@@ -4,6 +4,8 @@
   gather_facts: true
   connection: local
   become: true
+  vars_files:
+    - vault.yml
   vars:
     - neovim_appimage_url: "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
     - lazygit_release_url: "https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
@@ -15,6 +17,7 @@
       tags:
         - neovim
         - nvim
+  
       block:
         - name: Get neovim app-image
           ansible.builtin.get_url:
@@ -30,11 +33,54 @@
             group: root
             state: link
 
-    - name: Install lazygit
+    - name: Check if lazygit is installed
       tags:
         - neovim
         - nvim
         - lazygit
+  
+      block:
+        - name: Is lazygit installed?
+          ansible.builtin.stat:
+            path: /usr/local/bin/lazygit
+          register: lazygit_stat_raw
+
+        - name: Set fact
+          ansible.builtin.set_fact:
+            lazygit_stat: "{{ lazygit_stat_raw | default('{}') }}"
+
+        - name: Is lazygit installed? Show debug
+          ansible.builtin.debug:
+            var: lazygit_stat.stat.exists
+
+    - name: Check local lazygit
+      tags:
+        - neovim
+        - nvim
+        - lazygit
+  
+      block:
+        - name: Which lazygit version is installed? 
+          ansible.builtin.command:
+            cmd: /usr/local/bin/lazygit --version
+          register: command_output
+          changed_when: false
+
+        - name: Extract and cleanup local lazygit version
+          ansible.builtin.set_fact:
+            lazygit_version: "{{ command_output.stdout_lines[0] | regex_search('version=([0-9\\.]+)', '\\1') }}"
+
+        - name: Show local lazygit_version
+          ansible.builtin.debug:
+            var: lazygit_version[0]
+      when: lazygit_stat.stat.exists
+
+    - name: Check online lazygit
+      tags:
+        - neovim
+        - nvim
+        - lazygit
+  
       block:
         - name: Fetch JSON
           ansible.builtin.uri:
@@ -42,22 +88,55 @@
             return_content: true
           register: json_response
 
-        - name: Extract and clenup tag_name
+        - name: Extract and cleanup tag_name
           ansible.builtin.set_fact:
             tag_name: "{{ json_response.json.tag_name | regex_replace('^v', '') }}"
 
-        - name: Show tag_name
+        - name: Show remote lazygit tag_name
           ansible.builtin.debug:
             var: tag_name
+
+    - name: Install lazygit
+      tags:
+        - neovim
+        - nvim
+        - lazygit
+
+      block:
+
+        - name: Create a /tmp/lazygit.tmp folder
+          ansible.builtin.file:
+            dest: /tmp/lazygit.tmp
+            owner: root
+            group: root
+            state: directory
 
         - name: Get TGZ-File
           ansible.builtin.get_url:
             url: "{{ lazygit_download_prefix }}{{ tag_name }}{{ lazygit_download_suffix }}"
-            dest: "/tmp/lazygit{{ tag_name }}{{ lazygit_download_suffix }}"
+            dest: "/tmp/lazygit.tmp/{{ tag_name }}{{ lazygit_download_suffix }}"
             mode: '0644'
 
-        - name: Extract TGZ-File lazygit to /usr/local/bin/lazygit
+        - name: Extract TGZ-File lazygit to /tmp/lazygit.tmp
           ansible.builtin.unarchive:
-            src: "/tmp/lazygit{{ tag_name }}{{ lazygit_download_suffix }}"
-            dest: /usr/local/bin/
-            extra_opts: [--strip-components=1]
+            src: "/tmp/lazygit.tmp/{{ tag_name }}{{ lazygit_download_suffix }}"
+            dest: /tmp/lazygit.tmp/
+            creates: /tmp/lazygit.tmp/lazygit
+
+        - name: Copy lazygit to /usr/local/bin/lazygit
+          ansible.builtin.copy:
+            src: /tmp/lazygit.tmp/lazygit
+            dest: /usr/local/bin/lazygit
+            mode: '0755'
+
+        - name: Is lazygit installed? Show debug
+          ansible.builtin.debug:
+            var: lazygit_stat
+
+        - name: Cleanup /tmp/lazygit.tmp folder
+          ansible.builtin.file:
+            dest: /tmp/lazygit.tmp
+            state: absent
+
+      when: not lazygit_stat.stat.exists
+
