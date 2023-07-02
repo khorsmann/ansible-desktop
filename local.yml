@@ -17,5 +17,8 @@
     - name: Import neovim.yml
       ansible.builtin.import_tasks: playbooks/neovim.yml
 
+    - name: Import helix-editor-ubuntu.yml
+      ansible.builtin.import_tasks: playbooks/helix-editor-ubuntu.yml
+
     - name: Import lazygit.yml
       ansible.builtin.import_tasks: playbooks/lazygit.yml
