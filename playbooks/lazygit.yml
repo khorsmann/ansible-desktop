@@ -1,0 +1,111 @@
+---
+- name: Check if lazygit is installed
+  tags:
+    - lazygit
+  block:
+    - name: Is lazygit installed?
+      ansible.builtin.stat:
+        path: /usr/local/bin/lazygit
+      register: lazygit_stat_raw
+
+    - name: Set fact
+      ansible.builtin.set_fact:
+        lazygit_stat: "{{ lazygit_stat_raw | default('{}') }}"
+
+    - name: Is lazygit installed? Show debug
+      ansible.builtin.debug:
+        var: lazygit_stat.stat.exists
+      when: show_debug
+
+- name: Check local lazygit
+  tags:
+    - lazygit
+  when: lazygit_stat.stat.exists
+  block:
+    - name: Which lazygit version is installed?
+      ansible.builtin.command:
+        cmd: /usr/local/bin/lazygit --version
+      register: command_output
+      changed_when: false
+
+    - name: Extract and cleanup local lazygit version
+      ansible.builtin.set_fact:
+        lazygit_version_local: "{{ command_output.stdout_lines[0] | regex_search('version=([0-9\\.]+)', '\\1') | first }}"
+
+    - name: Show local lazygit_version
+      ansible.builtin.debug:
+        var: lazygit_version_local
+      when: show_debug
+
+- name: Check online lazygit
+  tags:
+    - lazygit
+  block:
+    - name: Fetch JSON
+      ansible.builtin.uri:
+        url: "{{ lazygit_release_url }}"
+        return_content: true
+      register: json_response
+
+    - name: Extract and cleanup tag_name
+      ansible.builtin.set_fact:
+        tag_name: "{{ json_response.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Show remote lazygit tag_name / version
+      ansible.builtin.debug:
+        var: tag_name
+      when: show_debug
+
+- name: Install lazygit
+  tags:
+    - lazygit
+  when: >
+    (
+      not lazygit_stat.stat.exists | default(false)
+    )
+    or
+    (
+      lazygit_version_local is defined
+      and tag_name is version(lazygit_version_local, '>')
+    )
+  block:
+    - name: Create a /tmp/lazygit.tmp folder
+      ansible.builtin.file:
+        dest: /tmp/lazygit.tmp
+        owner: root
+        group: root
+        mode: "0755"
+        state: directory
+
+    - name: Get TGZ-File
+      ansible.builtin.get_url:
+        url: "{{ lazygit_download_prefix }}{{ tag_name }}{{ lazygit_download_suffix }}"
+        dest: "/tmp/lazygit.tmp/{{ tag_name }}{{ lazygit_download_suffix }}"
+        mode: "0644"
+
+    - name: Show remote lazygit URL
+      ansible.builtin.debug:
+        msg: "{% set url = lazygit_download_prefix + tag_name + lazygit_download_suffix %}{{ url | quote }}"
+      when: show_debug
+
+    - name: Extract TGZ-File lazygit to /tmp/lazygit.tmp
+      ansible.builtin.unarchive:
+        src: "/tmp/lazygit.tmp/{{ tag_name }}{{ lazygit_download_suffix }}"
+        dest: /tmp/lazygit.tmp/
+        creates: /tmp/lazygit.tmp/lazygit
+
+    - name: Copy lazygit to /usr/local/bin/lazygit
+      ansible.builtin.copy:
+        src: /tmp/lazygit.tmp/lazygit
+        dest: /usr/local/bin/lazygit
+        mode: '0755'
+
+    - name: Is lazygit installed? Show debug
+      ansible.builtin.debug:
+        var: lazygit_stat
+      when: show_debug
+
+    - name: Cleanup /tmp/lazygit.tmp folder
+      ansible.builtin.file:
+        dest: /tmp/lazygit.tmp
+        state: absent

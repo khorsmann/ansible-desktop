@@ -1,0 +1,20 @@
+---
+- name: Install neovim
+  tags:
+    - neovim
+    - nvim
+
+  block:
+    - name: Get neovim app-image
+      ansible.builtin.get_url:
+        url: "{{ neovim_appimage_url }}"
+        dest: /usr/local/bin/neovim.appimage
+        mode: '0755'
+
+    - name: Create a symbolic link nvim
+      ansible.builtin.file:
+        src: /usr/local/bin/neovim.appimage
+        dest: /usr/local/bin/nvim
+        owner: root
+        group: root
+        state: link
