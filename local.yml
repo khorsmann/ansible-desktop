@@ -14,6 +14,10 @@
     - lazygit_download_suffix: '_Linux_x86_64.tar.gz'
 
   tasks:
+
+    - name: Import chrome.yml
+      ansible.builtin.import_tasks: playbooks/chrome.yml
+
     - name: Import neovim.yml
       ansible.builtin.import_tasks: playbooks/neovim.yml
 
