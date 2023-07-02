@@ -17,12 +17,18 @@
 
     - name: Import chrome.yml
       ansible.builtin.import_tasks: playbooks/chrome.yml
+      tags: chrome
 
     - name: Import neovim.yml
       ansible.builtin.import_tasks: playbooks/neovim.yml
+      tags:
+        - neovim
+        - nvim
 
     - name: Import helix-editor-ubuntu.yml
       ansible.builtin.import_tasks: playbooks/helix-editor-ubuntu.yml
+      tags: helix
 
     - name: Import lazygit.yml
       ansible.builtin.import_tasks: playbooks/lazygit.yml
+      tags: lazygit
