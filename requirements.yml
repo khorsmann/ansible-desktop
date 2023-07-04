@@ -1,0 +1,31 @@
+---
+collections:
+  # Install a collection from Ansible Galaxy.
+  - name: ansible.netcommon
+    version: ">=5.0.0" # 5.1.1
+    source: https://galaxy.ansible.com
+
+  - name: ansible.posix
+    version: ">=1.5.1" # 1.5.4
+    source: https://galaxy.ansible.com
+
+  - name: amazon.aws
+    version: ">=5.4.0" # 6.0.1
+    source: https://galaxy.ansible.com
+
+  - name: community.aws
+    version: ">=5.4.0" # 6.0.0
+    source: https://galaxy.ansible.com
+
+  - name: community.mysql
+    version: "3.6.0" # 3.6.0
+    source: https://galaxy.ansible.com
+
+  - name: community.general
+    version: ">=6.3.0" # 7.0.1
+    source: https://galaxy.ansible.com
+
+
+roles:
+  - name: geerlingguy.pip
+  - name: geerlingguy.docker

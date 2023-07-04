@@ -1,2 +1,4 @@
 log/*
 vault.yml
+roles/*
+collections/*
