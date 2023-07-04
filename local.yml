@@ -6,13 +6,7 @@
   become: true
   vars_files:
     - vault.yml
-  vars:
-    - show_debug: false
-    - neovim_appimage_url: "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
-    - lazygit_release_url: "https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
-    - lazygit_download_prefix: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_"
-    - lazygit_download_suffix: '_Linux_x86_64.tar.gz'
-
+    - vars.yml
   tasks:
 
     - name: Import docker.yml

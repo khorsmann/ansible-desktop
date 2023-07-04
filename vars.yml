@@ -1,0 +1,7 @@
+---
+show_debug: false
+docker_users: ['khorsmann']
+neovim_appimage_url: "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
+lazygit_release_url: "https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
+lazygit_download_prefix: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_"
+lazygit_download_suffix: '_Linux_x86_64.tar.gz'

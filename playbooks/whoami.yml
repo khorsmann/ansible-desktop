@@ -1,0 +1,16 @@
+---
+- name: Whoami
+  tags:
+    - whoami
+    - docker
+  block:
+    - name: Get the username running the deploy
+      become: false
+      ansible.builtin.command:
+        cmd: whoami
+      register: username_on_the_host
+
+    - name: Set fact whoami
+      ansible.builtin.set_fact:
+        whoami: "{{ username_on_host.stdout | default('{}') }}"
+
