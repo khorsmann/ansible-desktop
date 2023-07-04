@@ -18,3 +18,8 @@
         owner: root
         group: root
         state: link
+
+# FIME on Ubuntu:
+# sudo add-apt-repository universe
+# sudo apt install libfuse2
+
