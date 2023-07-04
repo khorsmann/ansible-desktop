@@ -9,6 +9,10 @@
     - vars.yml
   tasks:
 
+    - name: Import nvm.yml
+      ansible.builtin.import_tasks: playbooks/nvm.yml
+      tags: nvm
+
     - name: Import docker.yml
       ansible.builtin.import_tasks: playbooks/docker.yml
       tags: docker

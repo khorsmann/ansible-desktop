@@ -1,6 +1,10 @@
 ---
 show_debug: false
-docker_users: ['khorsmann']
+local_user: 'khorsmann'
+docker_users: [ "{{ local_user }}" ]
+nvm_user: "{{ local_user }}"
+nvm_version: "v0.39.3"
+nvm_node_version: "v18.16.1"
 neovim_appimage_url: "https://github.com/neovim/neovim/releases/latest/download/nvim.appimage"
 lazygit_release_url: "https://api.github.com/repos/jesseduffield/lazygit/releases/latest"
 lazygit_download_prefix: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_"

@@ -1,0 +1,27 @@
+---
+- name: add NVM
+  tags:
+    - nvm
+  block:
+    - name: Install role moviedo.nvm
+      ansible.builtin.include_role:
+        name: moviedo.nvm
+
+    - name: Install "npm install -g bash-language-server"
+      ansible.builtin.command:
+        cmd: npm install -g bash-language-server
+      become_user: "{{ nvm_user }}"
+      become: true
+
+    - name: Install "npm install -g @ansible/ansible-language-server"
+      ansible.builtin.command:
+        cmd: npm install -g @ansible/ansible-language-server
+      become_user: "{{ nvm_user }}"
+      become: true
+
+    - name: Install "npm install -g yaml-language-server@next"
+      ansible.builtin.command:
+        cmd: npm install -g yaml-language-server@next
+      become_user: "{{ nvm_user }}"
+      become: true
+
