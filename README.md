@@ -16,6 +16,6 @@ ansible-vault create vault.yml
 ### Content of vault.yml
 ```yaml
 ---
-ansible_become_pass=YOUR-PASSWORD-HERE
+ansible_become_pass: "YOUR-SUDO-PASSWORD-HERE"
 ```
 

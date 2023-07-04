@@ -1,0 +1,12 @@
+---
+- name: Add docker
+  tags:
+    - docker
+  block:
+    - name: Install role geerlinggy.pip
+      ansible.builtin.include_role:
+        name: geerlingguy.pip
+
+    - name: Install role geerlinggy.docker
+      ansible.builtin.include_role:
+        name: geerlingguy.docker
