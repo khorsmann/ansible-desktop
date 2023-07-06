@@ -19,7 +19,19 @@
         group: root
         state: link
 
-# FIME on Ubuntu:
-# sudo add-apt-repository universe
-# sudo apt install libfuse2
+    - name: Enable universe repository
+      ansible.builtin.apt_repository:
+        repo: "{{ item }}"
+      loop:
+        - "deb http://archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+        - "deb http://archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }}-updates universe"
+        - "deb http://security.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+      when: ansible_distribution == "Ubuntu"
+
+    - name: apt install libfuse2
+      ansible.builtin.apt:
+        name: libfuse2
+        state: present
+        update_cache: true
+      when: ansible_distribution == "Ubuntu"
 
